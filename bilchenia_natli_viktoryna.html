@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Білченя Натлі — лісова вікторина</title>
+<style>
+:root{
+  --ink:#263629; --moss:#496344; --leaf:#71864c; --gold:#e7a83e;
+  --cream:#fff8e9; --paper:#fffdf6; --rust:#b95d36; --soft:#f1e5cf;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; min-height:100vh; color:var(--ink);
+  font-family:"Trebuchet MS",Arial,sans-serif;
+  background:
+    radial-gradient(ellipse at 12% 18%,rgba(235,166,66,.28),transparent 24%),
+    radial-gradient(ellipse at 88% 10%,rgba(173,91,48,.23),transparent 25%),
+    linear-gradient(145deg,#e9edda,#f8e8c9 55%,#e8d3ae);
+  padding:24px 14px 40px; overflow-x:hidden;
+}
+.forest{max-width:850px;margin:auto;position:relative}
+.leaves{font-size:30px;letter-spacing:10px;text-align:center;opacity:.9;margin:0 0 5px}
+header{text-align:center;margin-bottom:20px}
+.kicker{color:#6c7446;font-weight:800;letter-spacing:2px;text-transform:uppercase;font-size:13px}
+h1{font-size:clamp(30px,6vw,48px);margin:7px 0;color:#36513a;line-height:1.08}
+.subtitle{font-size:17px;color:#66583e;margin:8px 0}
+.card{
+  background:rgba(255,253,246,.96);border:2px solid #d9c49d;border-radius:25px;
+  box-shadow:0 12px 30px rgba(69,65,39,.13);padding:clamp(20px,4vw,34px);
+}
+.topline{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.pill{background:#edf0df;color:#435b39;border-radius:999px;padding:9px 14px;font-weight:800;font-size:14px}
+.score{background:#fff0d3;color:#88521f}
+.progress{height:12px;background:#eee3d0;border-radius:20px;overflow:hidden;margin:0 0 25px}
+.progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,#819653,#e6a43c);transition:width .3s}
+.question-label{color:#a45c31;font-weight:800;font-size:14px;letter-spacing:1px;text-transform:uppercase}
+.question{font-size:clamp(22px,4vw,29px);line-height:1.25;margin:9px 0 22px;color:#304a34}
+.answers{display:grid;gap:12px}
+.answer{
+  width:100%;text-align:left;border:2px solid #e1d3b8;background:#fffaf0;
+  color:#344333;border-radius:16px;padding:15px 17px;font-size:17px;line-height:1.35;
+  font-weight:700;cursor:pointer;transition:.18s;
+}
+.answer:hover:not(:disabled){border-color:#9aab6b;background:#f4f6e9;transform:translateY(-1px)}
+.answer:focus-visible,.btn:focus-visible{outline:3px solid #d78a35;outline-offset:3px}
+.answer:disabled{cursor:default}
+.answer.correct{background:#e8f3df;border-color:#6c9a55;color:#315b31}
+.answer.wrong{background:#fae7df;border-color:#c87555;color:#843e2b}
+.feedback{margin-top:18px;padding:15px 17px;border-radius:15px;font-size:16px;line-height:1.4;font-weight:700}
+.feedback.good{background:#e8f3df;color:#315b31}
+.feedback.bad{background:#fae7df;color:#843e2b}
+.actions{display:flex;justify-content:flex-end;margin-top:20px}
+.btn{
+  border:0;border-radius:999px;padding:13px 23px;background:#496b43;color:white;
+  font-size:17px;font-weight:800;cursor:pointer;box-shadow:0 4px 0 #314d31;
+}
+.btn:hover{filter:brightness(1.07);transform:translateY(-1px)}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 #314d31}
+.btn.secondary{background:#a95b36;box-shadow:0 4px 0 #783e28}
+.hidden{display:none!important}
+.result{text-align:center;padding:12px 4px}
+.result .big{font-size:70px;margin:5px 0}
+.result h2{font-size:32px;color:#36513a;margin:5px 0 10px}
+.result p{font-size:18px;line-height:1.5}
+.scoreline{font-size:25px;font-weight:900;color:#a65a2e;margin:15px 0}
+.result-note{background:#f3eedf;border-radius:16px;padding:14px;margin:18px auto;max-width:530px}
+footer{text-align:center;color:#6c674f;font-size:13px;margin-top:16px}
+@media(max-width:520px){body{padding:15px 10px 28px}.answer{font-size:16px;padding:14px}.topline{margin-bottom:14px}.leaves{font-size:23px}}
+</style>
+</head>
+<body>
+<main class="forest">
+  <div class="leaves" aria-hidden="true">🍂 🍁 🌰 🍁 🍂</div>
+  <header>
+    <div class="kicker">Осіння лісова вікторина</div>
+    <h1>Білченя Натлі</h1>
+    <p class="subtitle">Пригадай мультфільм і допоможи Натлі зібратися в мандрівку!</p>
+  </header>
+
+  <section class="card" id="game" aria-live="polite">
+    <div class="topline">
+      <span class="pill" id="counter">Запитання 1 із 7</span>
+      <span class="pill score" id="score">⭐ Бали: 0</span>
+    </div>
+    <div class="progress"><span id="bar"></span></div>
+    <div class="question-label">Обери правильну відповідь</div>
+    <h2 class="question" id="question"></h2>
+    <div class="answers" id="answers"></div>
+    <div class="feedback hidden" id="feedback" role="status"></div>
+    <div class="actions">
+      <button class="btn hidden" id="next">Наступне запитання →</button>
+    </div>
+  </section>
+
+  <section class="card result hidden" id="result" aria-live="polite">
+    <div class="big" id="medal">🏅</div>
+    <h2 id="resultTitle">Мандрівку завершено!</h2>
+    <p id="resultText"></p>
+    <div class="scoreline" id="finalScore"></div>
+    <div class="result-note" id="resultNote"></div>
+    <button class="btn secondary" id="again">🔄 Пройти вікторину ще раз</button>
+  </section>
+  <footer>🌳 Уважний глядач — справжній знавець лісових пригод! 🌳</footer>
+</main>
+
+<script>
+const questions = [
+  {
+    q:"Що хотів зробити Натлі?",
+    a:["Вирушити у мандрівку до далеких країв","Побудувати новий будиночок","Знайти скарб у лісі","Навчитися літати"],
+    correct:0,
+    explain:"Так! Натлі мріяв вирушити у мандрівку до далеких країв."
+  },
+  {
+    q:"Які речі Натлі спочатку хотів узяти із собою?",
+    a:["Воду, їжу та теплу ковдру","М’яч-стрибунець, м’які ельфійські капці й щасливий капелюх","Аптечку, ліхтарик і компас","Лише найнеобхідніші речі для виживання"],
+    correct:1,
+    explain:"Саме так! Спочатку Натлі обирав речі-бажання, а не те, без чого не обійтися."
+  },
+  {
+    q:"Хто давав Натлі мудрі поради?",
+    a:["Мама-білка","Його найкращий друг","Учитель","Лісник"],
+    correct:2,
+    explain:"Правильно! Учитель допомагав Натлі розібратися, що справді важливо."
+  },
+  {
+    q:"Як учитель пояснив Натлі, що таке потреби?",
+    a:["Це все, що нам подобається","Це речі, які хочеться мати","Це те, що потрібно нам для виживання","Це лише дорогі покупки"],
+    correct:2,
+    explain:"Так! Потреби — це те, що необхідне нам для життя та виживання."
+  },
+  {
+    q:"Що є потребами Натлі під час мандрівки?",
+    a:["М’яч-стрибунець і щасливий капелюх","Кисень, вода, безпечне місце для ночівлі, корисна й поживна їжа","Іграшки, прикраси та солодощі","Новий одяг і подарунки"],
+    correct:1,
+    explain:"Чудово! Для мандрівки Натлі потрібні повітря, вода, безпечний прихисток і поживна їжа."
+  },
+  {
+    q:"Як учитель пояснив, що таке товари і послуги?",
+    a:["Товари — це мрії, а послуги — подарунки","Товари — це речі, які купують і продають; послуги — це коли хтось щось робить для тебе","Товари й послуги — це одне й те саме","Товари можна лише виготовляти, а послуги — лише купувати"],
+    correct:1,
+    explain:"Саме так! Товар — це річ, а послуга — корисна дія, яку хтось виконує для іншої людини."
+  },
+  {
+    q:"Про яку духовну потребу йшла мова у мультфільмі?",
+    a:["Про розваги","Про подорожі","Про знання","Про нові речі"],
+    correct:2,
+    explain:"Правильно! Знання — одна з духовних потреб людини."
+  }
+];
+
+let current = 0;
+let points = 0;
+let locked = false;
+
+const $ = id => document.getElementById(id);
+function renderQuestion(){
+  locked = false;
+  const item = questions[current];
+  $("counter").textContent = `Запитання ${current+1} із ${questions.length}`;
+  $("score").textContent = `⭐ Бали: ${points}`;
+  $("bar").style.width = `${(current/questions.length)*100}%`;
+  $("question").textContent = item.q;
+  $("answers").innerHTML = "";
+  $("feedback").className = "feedback hidden";
+  $("feedback").textContent = "";
+  $("next").classList.add("hidden");
+  item.a.forEach((answer,index)=>{
+    const button = document.createElement("button");
+    button.className = "answer";
+    button.type = "button";
+    button.textContent = `${String.fromCharCode(1040+index)}. ${answer}`;
+    button.addEventListener("click",()=>chooseAnswer(index));
+    $("answers").appendChild(button);
+  });
+}
+function chooseAnswer(index){
+  if(locked) return;
+  locked = true;
+  const item = questions[current];
+  const buttons = [...$("answers").children];
+  buttons.forEach((button,i)=>{
+    button.disabled = true;
+    if(i===item.correct) button.classList.add("correct");
+    if(i===index && i!==item.correct) button.classList.add("wrong");
+  });
+  const isCorrect = index===item.correct;
+  if(isCorrect) points++;
+  $("score").textContent = `⭐ Бали: ${points}`;
+  $("feedback").textContent = (isCorrect ? "✅ Правильно! " : "🌿 Не зовсім так. ") + item.explain;
+  $("feedback").className = `feedback ${isCorrect ? "good" : "bad"}`;
+  $("next").textContent = current===questions.length-1 ? "Побачити результат →" : "Наступне запитання →";
+  $("next").classList.remove("hidden");
+}
+function finish(){
+  $("game").classList.add("hidden");
+  $("result").classList.remove("hidden");
+  $("bar").style.width = "100%";
+  $("finalScore").textContent = `Твій результат: ${points} із ${questions.length} балів`;
+  let medal,title,text,note;
+  if(points===7){
+    medal="🏆"; title="Неймовірно!"; text="Ти дуже уважно переглянув мультфільм і все чудово запам’ятав!";
+    note="Натлі пишається тобою! Ти справжній знавець потреб, товарів і послуг.";
+  }else if(points>=5){
+    medal="🌟"; title="Чудова робота!"; text="Ти добре пам’ятаєш пригоди Натлі. Ще трішки — і буде максимальний результат!";
+    note="Пригадай запитання, у яких було складно, і спробуй ще раз.";
+  }else if(points>=3){
+    medal="🍁"; title="Гарний початок!"; text="Ти дещо запам’ятав, але деякі моменти мультфільму варто пригадати.";
+    note="Не засмучуйся: повторна мандрівка допоможе здобути більше балів.";
+  }else{
+    medal="🐿️"; title="Час для нової спроби!"; text="Схоже, деякі пригоди Натлі залишилися непоміченими.";
+    note="Переглянь мультфільм ще раз і повертайся до вікторини. У тебе все вийде!";
+  }
+  $("medal").textContent=medal;
+  $("resultTitle").textContent=title;
+  $("resultText").textContent=text;
+  $("resultNote").textContent=note;
+}
+$("next").addEventListener("click",()=>{
+  current++;
+  if(current<questions.length) renderQuestion();
+  else finish();
+});
+$("again").addEventListener("click",()=>{
+  current=0; points=0;
+  $("result").classList.add("hidden");
+  $("game").classList.remove("hidden");
+  renderQuestion();
+});
+renderQuestion();
+</script>
+</body>
+</html>
